@@ -21,10 +21,56 @@ A professional Telegram automation bot designed for **Tonnyfx Academy**. This bo
 
 ## 🚀 Installation & Setup
 
-1. **Clone the repository:**
+### Local Run
+1. **Install dependencies:**
    ```bash
-   git clone [https://github.com/yourusername/Telegrambot.git](https://github.com/yourusername/Telegrambot.git)
-   cd Telegrambot
+   pip install -r requirements.txt
+   ```
+2. **Set env var:**
+   ```bash
+   export BOT_TOKEN="your_bot_token_from_botfather"
+   ```
+3. **Test healthcheck (new tab):**
+   ```bash
+   curl http://localhost:10000/health  # Should return "OK"
+   ```
+4. **Run:**
+   ```bash
+   python main.py
+   ```
+
+### Auto-Run with systemd
+...
+
+### Render.com Deployment (Cloud - Always On)
+1. **Push to GitHub** (main branch).
+2. **Connect repo** at render.com/dashboard.
+3. **Set env var** BOT_TOKEN in Render dashboard.
+4. **Deploy** using `infra/render.yaml` Blueprint (auto-detected).
+5. **Healthcheck**: Render pings /health automatically.
+6. **Logs/Metrics**: Available in Render dashboard.
+
+**Free tier works for low-traffic bots!**
+
+
+### Auto-Run with systemd (Recommended - Always On)
+1. **Service created**: `~/.config/systemd/user/telegrambot.service`
+2. **Reload & Enable** (one-time):
+   ```bash
+   systemctl --user daemon-reload
+   systemctl --user enable --now telegrambot
+   ```
+3. **Status/Logs**:
+   ```bash
+   systemctl --user status telegrambot
+   journalctl --user -u telegrambot -f
+   ```
+4. **Stop**:
+   ```bash
+   systemctl --user stop telegrambot
+   ```
+
+**Auto-starts on login/boot, restarts on crash!**
 Install dependencies:
 
 Bash
@@ -36,11 +82,7 @@ TOKEN: Your bot token from @BotFather.
 
 ADMIN_USERNAME: Your Telegram username (e.g., @FxwithTonny).
 
-Run the bot:
 
-Bash
-
-python main.py
 
 Command,Description
 /start,Initializes the bot and displays the main menu keyboard.

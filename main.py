@@ -1,5 +1,8 @@
 import logging
+import os
+import threading
 from typing import Final
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     Application, 
@@ -10,7 +13,9 @@ from telegram.ext import (
 )
 
 # --- Configuration ---
-TOKEN: Final = "8028162834:AAFKI2uu_E-Lq3oIpMMDsdDs9aG1vTGHie8"
+TOKEN: Final = os.getenv('BOT_TOKEN')
+if not TOKEN:
+    raise ValueError("BOT_TOKEN environment variable is required")
 BOT_USERNAME: Final = "@Tonnysbot_bot"
 ADMIN_USERNAME: Final = "@FxwithTonny"
 
@@ -18,6 +23,24 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+# --- HTTP Healthcheck Server for Render ---
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK')
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def run_server():
+    port = int(os.getenv('PORT', 10000))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    print(f"Healthcheck server running on port {port}")
+    server.serve_forever()
 
 # --- Keyboards ---
 def main_menu_keyboard():
@@ -149,6 +172,10 @@ if __name__ == '__main__':
 
     # Text Handler
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Start HTTP server in background
+    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread.start()
 
     print("Bot is now live and polling...")
     app.run_polling(poll_interval=1.0)
